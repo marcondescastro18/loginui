@@ -52,6 +52,11 @@ def health_db():
         print(f"DB health error: {e}")
         return jsonify({'status': 'ERROR', 'db': 'UNKNOWN'}), 500
 
+# Evitar 404 para favicon (não impacta API)
+@app.route('/favicon.ico', methods=['GET'])
+def favicon():
+    return '', 204
+
 @app.route('/api/auth/login', methods=['POST'])
 def login():
     try:
