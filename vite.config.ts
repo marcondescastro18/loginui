@@ -17,5 +17,6 @@ export default defineConfig({
     host: '0.0.0.0',
     port: 3000,
     strictPort: true,
+    allowedHosts: ['login-interface.znh7ry.easypanel.host'],
   },
 })
