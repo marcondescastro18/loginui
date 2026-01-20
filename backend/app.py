@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
 import jwt
 import bcrypt
 from datetime import datetime, timedelta
@@ -15,6 +15,14 @@ CORS(app, resources={r"/*": {"origins": ["https://login-interface.znh7ry.easypan
      supports_credentials=True, 
      allow_headers=["Content-Type", "Authorization"],
      methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
+
+# Handler explícito de preflight CORS para evitar 404 sem headers
+@app.route('/api/auth/login', methods=['OPTIONS'])
+@cross_origin(origins=["https://login-interface.znh7ry.easypanel.host", "http://localhost:3000"],
+              allow_headers=["Content-Type", "Authorization"],
+              methods=["POST"])
+def login_options():
+    return '', 200
 
 @app.route('/health', methods=['GET'])
 def health():
