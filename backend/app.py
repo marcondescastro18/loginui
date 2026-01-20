@@ -7,6 +7,10 @@ from db import get_user_by_email, create_session, log_access, update_last_access
 from config import Config
 
 app = Flask(__name__)
+
+# Validar configurações obrigatórias
+if not Config.JWT_SECRET:
+    raise ValueError("JWT_SECRET é obrigatória. Configure a variável de ambiente JWT_SECRET.")
 CORS(app, resources={r"/*": {"origins": ["https://login-interface.znh7ry.easypanel.host", "http://localhost:3000"]}}, 
      supports_credentials=True, 
      allow_headers=["Content-Type", "Authorization"],
@@ -78,7 +82,8 @@ def login():
         log_access(usuario['id'], email, 'login', ip, True, 'Login bem-sucedido')
         update_last_access(usuario['id'])
         
-        return jsonify({'sucesso': True, 'mensagem': 'Login realizado', 'token': token, 'usuario': {'id': usuario['id'], 'email': usuario['email'], 'nome': usuario['nome']}}), 200
+        nome = usuario.get('nome') or usuario['email']
+        return jsonify({'sucesso': True, 'mensagem': 'Login realizado', 'token': token, 'usuario': {'id': usuario['id'], 'email': usuario['email'], 'nome': nome}}), 200
     except Exception as e:
         print(f"Erro: {e}")
         return jsonify({'sucesso': False, 'mensagem': 'Erro ao realizar login'}), 500
