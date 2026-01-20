@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class Config:
-    DB_HOST = os.getenv('DB_HOST', 'login_auth_db')
+    DB_HOST = os.getenv('DB_HOST', 'postgres')
     DB_PORT = os.getenv('DB_PORT', '5432')
     DB_USER = os.getenv('DB_USER', 'auth_db')
     DB_PASSWORD = os.getenv('DB_PASSWORD', 'Senha123456')
