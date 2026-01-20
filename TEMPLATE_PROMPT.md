@@ -477,3 +477,49 @@ INSERT INTO usuarios (email, nome, senha) VALUES
 
 **Criado em:** 20 de janeiro de 2026  
 **Stack:** React 19 + Vite + Flask + PostgreSQL + Nixpacks
+
+---
+
+## 💻 Comandos de Terminal (histórico do que executamos)
+
+Observação: os deploys e variáveis foram configurados via EasyPanel (interface web). Abaixo estão apenas os comandos de terminal que usamos localmente durante os ajustes.
+
+### Git – commits e push
+
+```bash
+# Corrigir dependência do backend (PyJWT)
+git add backend/requirements.txt
+git commit -m "Fix: bump PyJWT to 2.10.1 for build"
+git push origin main
+
+# Atualizar URL pública da API usada no frontend
+git add .
+git commit -m "Fix: update API URL to public backend domain for browser access"
+git push origin main
+
+# Trocar fallback do frontend para o domínio definitivo do backend
+git add .
+git commit -m "Fix: update backend URL to https://login-backend.znh7ry.easypanel.host"
+git push origin main
+
+# Liberar domínio público do frontend no Vite (allowedHosts)
+git add vite.config.ts
+git commit -m "Fix: allow login-interface.znh7ry.easypanel.host in vite preview"
+git push origin main
+
+# Documentação e prompts
+git add TEMPLATE_PROMPT.md
+git commit -m "Add: comprehensive template prompt for React+Flask+PostgreSQL stack"
+git push origin main
+```
+
+### SQL – administração do banco (opcional)
+
+```sql
+-- Em alguns cenários, pode ser necessário conceder CREATEDB ao usuário
+-- (em EasyPanel normalmente não é preciso):
+ALTER ROLE auth_db CREATEDB;
+```
+
+Para criar as tabelas e dados de teste, utilizamos o arquivo `banco_dados/schema.sql` (executado pelo console SQL do serviço PostgreSQL no EasyPanel).
+
