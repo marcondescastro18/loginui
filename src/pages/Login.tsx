@@ -16,7 +16,18 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const res = await api.post("/api/auth/login", { email, senha });
+      // remove token antigo, se existir
+      localStorage.removeItem("token");
+
+      const res = await api.post("/api/auth/login", {
+        email,
+        password: senha,
+      });
+
+      if (!res.data?.token) {
+        throw new Error("Token não retornado");
+      }
+
       localStorage.setItem("token", res.data.token);
       navigate("/success");
     } catch {
@@ -39,12 +50,14 @@ export default function Login() {
             <label htmlFor="email">Email</label>
             <input
               id="email"
+              name="email"
               type="email"
               placeholder="seu@email.com"
               value={email}
-              onChange={e => setEmail(e.target.value)}
+              onChange={(e) => setEmail(e.target.value)}
               required
               disabled={loading}
+              autoComplete="email"
             />
           </div>
 
@@ -52,19 +65,31 @@ export default function Login() {
             <label htmlFor="senha">Senha</label>
             <input
               id="senha"
+              name="password"
               type="password"
               placeholder="Sua senha"
               value={senha}
-              onChange={e => setSenha(e.target.value)}
+              onChange={(e) => setSenha(e.target.value)}
               required
               disabled={loading}
+              autoComplete="current-password"
             />
           </div>
 
-          {error && <div style={{ color: "#e74c3c", fontSize: "13px", textAlign: "center" }}>{error}</div>}
+          {error && (
+            <div
+              style={{
+                color: "#e74c3c",
+                fontSize: "13px",
+                textAlign: "center",
+              }}
+            >
+              {error}
+            </div>
+          )}
 
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             className="login-button"
             disabled={loading}
           >
