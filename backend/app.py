@@ -7,7 +7,10 @@ from db import get_user_by_email, create_session, log_access, update_last_access
 from config import Config
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": ["https://login-interface.znh7ry.easypanel.host", "http://localhost:3000"]}}, 
+     supports_credentials=True, 
+     allow_headers=["Content-Type", "Authorization"],
+     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
 
 @app.route('/health', methods=['GET'])
 def health():
