@@ -61,42 +61,66 @@ def favicon():
 def login():
     try:
         data = request.get_json()
+        if not data:
+            return jsonify({'sucesso': False, 'mensagem': 'Dados inválidos'}), 400
+        
         email = data.get('email')
         senha = data.get('senha')
         
         if not email or not senha:
-            return jsonify({'sucesso': False, 'mensagem': 'Email e senha obrigatorios'}), 400
+            return jsonify({'sucesso': False, 'mensagem': 'Email e senha obrigatórios'}), 400
         
         usuario = get_user_by_email(email)
         if not usuario:
             ip = request.remote_addr
-            log_access(None, email, 'login', ip, False, 'Usuario nao encontrado')
-            return jsonify({'sucesso': False, 'mensagem': 'Usuario ou senha invalida'}), 401
+            log_access(None, email, 'login', ip, False, 'Usuário não encontrado')
+            return jsonify({'sucesso': False, 'mensagem': 'Usuário ou senha inválida'}), 401
         
         # Verificar se a senha está em bcrypt ou plaintext
         senha_db = usuario['senha']
+        senha_correta = False
+        
         if senha_db.startswith('$2b$') or senha_db.startswith('$2a$'):
-            # Senha hasheada com bcrypt
-            senha_correta = bcrypt.checkpw(senha.encode(), senha_db.encode())
+            # Senha hasheada com bcrypt (RECOMENDADO)
+            try:
+                senha_correta = bcrypt.checkpw(senha.encode('utf-8'), senha_db.encode('utf-8'))
+            except Exception as e:
+                print(f"Erro ao verificar bcrypt: {e}")
+                senha_correta = False
         else:
-            # Senha em plaintext
+            # Senha em plaintext (APENAS PARA DESENVOLVIMENTO)
             senha_correta = (senha == senha_db)
         
         if not senha_correta:
             ip = request.remote_addr
-            log_access(None, email, 'login', ip, False, 'Senha invalida')
-            return jsonify({'sucesso': False, 'mensagem': 'Usuario ou senha invalida'}), 401
+            log_access(None, email, 'login', ip, False, 'Senha inválida')
+            return jsonify({'sucesso': False, 'mensagem': 'Usuário ou senha inválida'}), 401
         
-        payload = {'id': usuario['id'], 'email': usuario['email'], 'exp': datetime.utcnow() + timedelta(hours=24)}
+        # Gerar token JWT
+        payload = {
+            'user_id': usuario['id'],
+            'email': usuario['email'],
+            'exp': datetime.utcnow() + timedelta(hours=24)
+        }
         token = jwt.encode(payload, Config.JWT_SECRET, algorithm='HS256')
         
+        # Registrar sessão e logs
         ip = request.remote_addr
         create_session(usuario['id'], token, ip)
         log_access(usuario['id'], email, 'login', ip, True, 'Login bem-sucedido')
         update_last_access(usuario['id'])
         
         nome = usuario.get('nome') or usuario['email']
-        return jsonify({'sucesso': True, 'mensagem': 'Login realizado', 'token': token, 'usuario': {'id': usuario['id'], 'email': usuario['email'], 'nome': nome}}), 200
+        return jsonify({
+            'sucesso': True,
+            'mensagem': 'Login realizado com sucesso',
+            'token': token,
+            'usuario': {
+                'id': usuario['id'],
+                'email': usuario['email'],
+                'nome': nome
+            }
+        }), 200
     except Exception as e:
         print(f"Erro: {e}")
         return jsonify({'sucesso': False, 'mensagem': 'Erro ao realizar login'}), 500
