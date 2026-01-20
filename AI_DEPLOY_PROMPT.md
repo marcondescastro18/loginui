@@ -28,10 +28,10 @@ Use este prompt em um agente de IA (Copilot/ChatGPT) para automatizar a prepara�
   - BACKEND_DOMAIN = <https://seu-backend.easypanel.host>
   - FRONTEND_DOMAIN = <https://seu-frontend.easypanel.host>
 - Banco
-  - DB_HOST = postgres  (nome do serviço interno do banco)
+  - DB_HOST = login_auth_db  (nome do serviço interno do banco no EasyPanel)
   - DB_PORT = 5432
   - DB_USER = auth_db
-  - DB_PASSWORD = <senha_segura>
+  - DB_PASSWORD = Senha123456
   - DB_NAME = auth_db
 - App
   - JWT_SECRET = <chave_jwt_segura>
@@ -53,6 +53,7 @@ Use este prompt em um agente de IA (Copilot/ChatGPT) para automatizar a prepara�
 2) Backend – dependências e execução
    - Garantir em `requirements.txt`: Flask, Flask-CORS, psycopg2-binary, PyJWT (2.10.1), bcrypt, python-dotenv, gunicorn (21.x).
    - Confirmar `Procfile` conforme regra.
+   - CORS configurado em `app.py` com origins permitidas: frontend domain + localhost:3000.
 3) PostgreSQL
    - Criar serviço POSTGRES no EasyPanel.
    - Executar `banco_dados/schema.sql` (copiar conteúdo e rodar no console SQL).
@@ -60,14 +61,15 @@ Use este prompt em um agente de IA (Copilot/ChatGPT) para automatizar a prepara�
    - Source: GitHub (OWNER/REPO/BRANCH), Build: Nixpacks, Build Path: `backend`.
    - Variáveis de ambiente:
      ```
-     DB_HOST=postgres
+     DB_HOST=login_auth_db
      DB_PORT=5432
      DB_USER=auth_db
-     DB_PASSWORD=<senha_segura>
+     DB_PASSWORD=Senha123456
      DB_NAME=auth_db
-     JWT_SECRET=<chave_jwt_segura>
+     JWT_SECRET=<chave_jwt_segura_OBRIGATÓRIA>
      PORT=3000
      ```
+   - **IMPORTANTE**: JWT_SECRET é obrigatória e deve ser definida nas variáveis de ambiente (não há default no código).
    - Domínios: BACKEND_DOMAIN → Destino HTTP 3000 `/` (HTTPS ligado).
    - Implantar e validar `GET BACKEND_DOMAIN/health` == 200.
 5) Frontend – ajustes de código
