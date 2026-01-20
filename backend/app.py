@@ -3,7 +3,7 @@ from flask_cors import CORS
 import jwt
 import bcrypt
 from datetime import datetime, timedelta
-from db import get_user_by_email, create_session, log_access, update_last_access
+from db import get_user_by_email, create_session, log_access, update_last_access, get_connection
 from config import Config
 
 app = Flask(__name__)
@@ -12,6 +12,30 @@ CORS(app)
 @app.route('/health', methods=['GET'])
 def health():
     return jsonify({'status': 'OK', 'timestamp': datetime.now().isoformat()}), 200
+
+@app.route('/health/db', methods=['GET'])
+def health_db():
+    try:
+        conn = get_connection()
+        if not conn:
+            return jsonify({'status': 'ERROR', 'db': 'UNAVAILABLE'}), 500
+        try:
+            cur = conn.cursor()
+            cur.execute("SELECT 1")
+            # tentar checar tabela usuarios (opcional)
+            usuarios_count = None
+            try:
+                cur.execute("SELECT COUNT(*) FROM usuarios")
+                usuarios_count = cur.fetchone()[0]
+            except Exception:
+                usuarios_count = 'unknown'
+            cur.close()
+            return jsonify({'status': 'OK', 'db': 'AVAILABLE', 'usuarios_count': usuarios_count}), 200
+        finally:
+            conn.close()
+    except Exception as e:
+        print(f"DB health error: {e}")
+        return jsonify({'status': 'ERROR', 'db': 'UNKNOWN'}), 500
 
 @app.route('/api/auth/login', methods=['POST'])
 def login():
