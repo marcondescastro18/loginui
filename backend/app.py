@@ -56,7 +56,15 @@ def login():
             log_access(None, email, 'login', ip, False, 'Usuario nao encontrado')
             return jsonify({'sucesso': False, 'mensagem': 'Usuario ou senha invalida'}), 401
         
-        senha_correta = bcrypt.checkpw(senha.encode(), usuario['senha'].encode())
+        # Verificar se a senha está em bcrypt ou plaintext
+        senha_db = usuario['senha']
+        if senha_db.startswith('$2b$') or senha_db.startswith('$2a$'):
+            # Senha hasheada com bcrypt
+            senha_correta = bcrypt.checkpw(senha.encode(), senha_db.encode())
+        else:
+            # Senha em plaintext
+            senha_correta = (senha == senha_db)
+        
         if not senha_correta:
             ip = request.remote_addr
             log_access(None, email, 'login', ip, False, 'Senha invalida')
