@@ -21,7 +21,7 @@ export default function Login() {
 
       const res = await api.post("/api/auth/login", {
         email,
-        password: senha,
+        senha,  // Campo correto esperado pelo backend
       });
 
       if (!res.data?.token) {
