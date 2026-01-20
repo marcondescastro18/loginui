@@ -110,7 +110,8 @@ def login():
         log_access(usuario['id'], email, 'login', ip, True, 'Login bem-sucedido')
         update_last_access(usuario['id'])
         
-        nome = usuario.get('nome') or usuario['email']
+        # Usar nome se existir, senão usar email
+        nome = usuario.get('nome') if usuario.get('nome') else usuario['email']
         return jsonify({
             'sucesso': True,
             'mensagem': 'Login realizado com sucesso',

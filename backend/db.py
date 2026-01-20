@@ -22,7 +22,12 @@ def get_user_by_email(email):
         return None
     try:
         cur = conn.cursor(cursor_factory=RealDictCursor)
-        cur.execute("SELECT id, email, senha, nome FROM usuarios WHERE email = %s AND ativo = TRUE", (email,))
+        # Tenta selecionar com nome, se falhar, sem nome
+        try:
+            cur.execute("SELECT id, email, senha, nome FROM usuarios WHERE email = %s AND ativo = TRUE", (email,))
+        except psycopg2.ProgrammingError:
+            # Coluna nome não existe, tenta sem ela
+            cur.execute("SELECT id, email, senha FROM usuarios WHERE email = %s AND ativo = TRUE", (email,))
         user = cur.fetchone()
         cur.close()
         return user
