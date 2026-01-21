@@ -5,8 +5,19 @@ create_user.py - Script de Criação de Usuários
 Script interativo para criar novos usuários no sistema com senha segura.
 Utiliza bcrypt para hash das senhas com 10 rounds (padrão).
 
+CORREÇÃO APLICADA:
+- Remove uso de coluna 'nome' (NÃO existe no banco)
+- Remove uso de coluna 'ativo' (NÃO existe no banco)
+- INSERT apenas colunas existentes: email, senha
+
+Schema Real da Tabela usuarios:
+- id (SERIAL PRIMARY KEY)
+- email (VARCHAR UNIQUE NOT NULL)
+- senha (VARCHAR NOT NULL)
+- criado_em (TIMESTAMP DEFAULT CURRENT_TIMESTAMP)
+
 Funcionalidades:
-- Solicita email, senha e nome (opcional)
+- Solicita email e senha
 - Gera hash bcrypt da senha
 - Verifica se usuário já existe
 - Insere usuário no banco de dados
@@ -17,12 +28,13 @@ Uso:
     
     # Ou importar como módulo
     from create_user import create_user
-    create_user('novo@email.com', 'senha123', 'Nome Usuário')
+    create_user('novo@email.com', 'senha123')
 
 Segurança:
 - NUNCA armazena senhas em texto puro
 - Usa bcrypt com salt automático
 - Valida duplicação de email
+- Prepared statements (proteção SQL injection)
 
 Requisitos:
 - bcrypt instalado: pip install bcrypt
@@ -58,23 +70,27 @@ def hash_password(password):
     # Retorna como string (não bytes)
     return hashed.decode('utf-8')
 
-def create_user(email, password, nome=None):
+def create_user(email, password):
     """
     Cria novo usuário no banco com senha hasheada.
     
+    CORREÇÃO APLICADA:
+    - INSERT apenas colunas EXISTENTES: email, senha
+    - NÃO usa: nome, ativo (não existem no schema real)
+    
     Valida se o email já existe antes de inserir.
     Usa prepared statements para prevenir SQL injection.
+    Inclui tratamento robusto de exceções com rollback.
     
     Args:
         email (str): Email do usuário (único)
         password (str): Senha em texto puro (será hasheada)
-        nome (str, optional): Nome do usuário. Defaults to None.
         
     Returns:
         bool: True se criado com sucesso, False caso contrário
         
     Exemplo:
-        if create_user('teste@email.com', '123456', 'Usuário Teste'):
+        if create_user('teste@email.com', '123456'):
             print('Usuário criado!')
     """
     try:
@@ -101,10 +117,11 @@ def create_user(email, password, nome=None):
             conn.close()
             return False
         
-        # Inserir usuário
+        # Inserir usuário - APENAS colunas existentes: email, senha
+        # NÃO usa: nome, ativo (não existem no banco)
         cur.execute(
-            "INSERT INTO usuarios (email, senha, nome, ativo) VALUES (%s, %s, %s, TRUE) RETURNING id",
-            (email, password_hash, nome)
+            "INSERT INTO usuarios (email, senha) VALUES (%s, %s) RETURNING id",
+            (email, password_hash)
         )
         user_id = cur.fetchone()[0]
         conn.commit()
@@ -115,10 +132,20 @@ def create_user(email, password, nome=None):
         print(f"✅ Usuário criado com sucesso!")
         print(f"   ID: {user_id}")
         print(f"   Email: {email}")
-        print(f"   Nome: {nome or 'Não informado'}")
         return True
         
+    except psycopg2.Error as db_error:
+        # Tratamento específico para erros de banco
+        print(f"❌ Erro de banco de dados ao criar usuário: {db_error}")
+        try:
+            if conn:
+                conn.rollback()
+        except:
+            pass
+        return False
+        
     except Exception as e:
+        # Tratamento genérico
         print(f"❌ Erro ao criar usuário: {e}")
         return False
 
@@ -126,11 +153,12 @@ if __name__ == "__main__":
     print("=" * 60)
     print("🔐 CRIAR NOVO USUÁRIO COM SENHA SEGURA")
     print("=" * 60)
+    print("\nSchema real: usuarios (id, email, senha, criado_em)")
+    print("NÃO existe coluna 'nome' ou 'ativo'\n")
     
-    email = input("\n📧 Email: ").strip()
+    email = input("📧 Email: ").strip()
     password = input("🔑 Senha: ").strip()
-    nome = input("👤 Nome (opcional): ").strip() or None
     
     print("\n⏳ Criando usuário...")
-    create_user(email, password, nome)
+    create_user(email, password)
     print()
