@@ -19,7 +19,7 @@ export default function Success() {
           <p className="success-subtitle">Você está logado com sucesso</p>
         </div>
 
-        <p className="success-message">Bem-vindo ao nosso sistema. Você tem acesso total a todos os recursos.</p>
+        <p className="success-message">Já vendeu PIRANHA?</p>
         
         <button onClick={handleLogout} className="success-button">
           Sair da Conta
