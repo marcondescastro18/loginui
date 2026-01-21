@@ -1,10 +1,35 @@
 #!/usr/bin/env python3
 """
-Script para listar todas as tabelas e seus dados
-Execute no terminal do backend no EasyPanel
+list_database.py - Explorador do Banco de Dados
+
+Script de diagnóstico que lista todas as tabelas do banco, suas estruturas
+e dados armazenados. Útil para debug e inspeção do schema.
+
+Funcionalidades:
+- Lista todas as tabelas do banco
+- Exibe estrutura de cada tabela (colunas, tipos, constraints)
+- Mostra dados armazenados em cada tabela
+- Conta total de registros
+
+Uso:
+    # Localmente
+    python list_database.py
+    
+    # No EasyPanel/Servidor
+    cd /app/backend && python list_database.py
+
+Requisitos:
+- Variáveis de ambiente configuradas (.env)
+- Acesso ao banco de dados PostgreSQL
+
+Output:
+- Informações detalhadas de todas as tabelas
+- Formatação colorida e estruturada
+- Total de registros por tabela
 """
 
 import sys
+# Adiciona path da aplicação para importar Config
 sys.path.append('/app')
 
 from config import Config
@@ -12,7 +37,20 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 
 def list_all_tables():
+    """
+    Lista todas as tabelas do schema 'public' e seus dados.
+    
+    Para cada tabela, exibe:
+    - Nome da tabela
+    - Estrutura (colunas, tipos, constraints)
+    - Dados armazenados
+    - Total de registros
+    
+    Returns:
+        None: Imprime resultados no console
+    """
     try:
+        # Conecta ao banco usando configurações do Config
         conn = psycopg2.connect(
             host=Config.DB_HOST,
             port=Config.DB_PORT,

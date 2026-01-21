@@ -1,9 +1,44 @@
+#!/usr/bin/env python3
+"""
+db.py - Funções de Acesso ao Banco de Dados
+
+Módulo responsável por todas as operações de banco de dados:
+- Conexão com PostgreSQL
+- Autenticação de usuários
+- Gerenciamento de sessões
+- Logs de acesso
+
+Schema do Banco (Simplificado):
+- usuarios: id, email, senha, criado_em
+- sessoes: id, usuario_id, token, endereco_ip, expirado_em, criado_em
+- registros_acesso: id, usuario_id, tipo_evento, endereco_ip, sucesso, mensagem, criado_em
+
+Todas as funções incluem tratamento de exceções e rollback automático.
+"""
+
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from config import Config
 
 def get_connection():
+    """
+    Estabelece conexão com o banco de dados PostgreSQL.
+    
+    Utiliza as configurações definidas em Config para conectar ao banco.
+    Em caso de erro, imprime a mensagem e retorna None.
+    
+    Returns:
+        psycopg2.connection: Objeto de conexão ativa ou None em caso de erro
+        
+    Exemplo:
+        conn = get_connection()
+        if conn:
+            cur = conn.cursor()
+            # executar queries
+            conn.close()
+    """
     try:
+        # Estabelece conexão usando credenciais do Config
         conn = psycopg2.connect(
             host=Config.DB_HOST,
             port=Config.DB_PORT,
@@ -13,7 +48,8 @@ def get_connection():
         )
         return conn
     except psycopg2.Error as e:
-        print(f"Erro: {e}")
+        # Log do erro (em produção, use logging adequado)
+        print(f"Erro ao conectar ao banco de dados: {e}")
         return None
 
 def get_user_by_email(email):

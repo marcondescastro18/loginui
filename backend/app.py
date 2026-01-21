@@ -1,3 +1,38 @@
+#!/usr/bin/env python3
+"""
+app.py - API Backend do Sistema de Login
+
+API REST construída com Flask para autenticação de usuários.
+
+Endpoints disponíveis:
+- GET  /health           - Health check da aplicação
+- GET  /health/db        - Health check do banco de dados
+- POST /api/auth/login   - Autenticação de usuário (retorna JWT token)
+- POST /api/auth/verify  - Validação de JWT token
+
+Autenticação:
+- Senhas com bcrypt (10+ rounds)
+- Tokens JWT com expiração de 24 horas
+- Logs de todas as tentativas de acesso
+
+Segurança:
+- CORS configurado para origens específicas
+- Validação de inputs
+- Tratamento robusto de exceções
+- Proteção contra SQL injection (prepared statements)
+
+Variáveis de ambiente necessárias:
+- JWT_SECRET (obrigatória)
+- DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD
+
+Uso:
+    # Desenvolvimento
+    python app.py
+    
+    # Produção
+    gunicorn --bind 0.0.0.0:3000 app:app
+"""
+
 from flask import Flask, request, jsonify
 from flask_cors import CORS, cross_origin
 import jwt
@@ -7,11 +42,15 @@ from datetime import datetime, timedelta
 from db import get_user_by_email, create_session, log_access, update_last_access, get_connection
 from config import Config
 
+# Inicializa aplicação Flask
 app = Flask(__name__)
 
-# Validar configurações obrigatórias
+# Validar configurações obrigatórias na inicialização
 if not Config.JWT_SECRET:
-    raise ValueError("JWT_SECRET é obrigatória. Configure a variável de ambiente JWT_SECRET.")
+    raise ValueError(
+        "JWT_SECRET é obrigatória. Configure a variável de ambiente JWT_SECRET. "
+        "Exemplo: export JWT_SECRET='sua_chave_secreta_aqui'"
+    )
 CORS(app, resources={r"/*": {"origins": ["https://login-interface.znh7ry.easypanel.host", "http://localhost:3000"]}}, 
      supports_credentials=True, 
      allow_headers=["Content-Type", "Authorization"],

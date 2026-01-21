@@ -1,6 +1,25 @@
 #!/usr/bin/env python3
+"""
+verify_password.py - Script de Diagnóstico de Senhas
+
+Script auxiliar para verificar e testar senhas armazenadas no banco.
+Útil para debugging e validação de hashes bcrypt.
+
+Funcionalidades:
+- Busca usuário por email
+- Detecta tipo de senha (bcrypt ou plaintext)
+- Testa validação da senha
+- Lista todos os usuários se não encontrar
+
+Uso:
+    python verify_password.py
+    
+Nota: Este script é apenas para desenvolvimento/debug.
+Não use em produção.
+"""
 
 import sys
+# Adiciona paths para importar módulos da aplicação
 sys.path.insert(0, '/app')
 sys.path.insert(0, '/app/backend')
 
@@ -10,6 +29,7 @@ try:
     import bcrypt
     
     print('\n🔍 VERIFICANDO USUÁRIO teste@email.com\n')
+    print('=' * 60)
     
     usuario = get_user_by_email('teste@email.com')
     
