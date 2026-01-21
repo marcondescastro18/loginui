@@ -19,15 +19,17 @@ def get_connection():
 def get_user_by_email(email):
     """
     Busca usuário por email.
-    Compatível com schema sem coluna 'nome'.
+    Schema real: id, email, senha, criado_em
+    NÃO existem colunas: nome, ativo, atualizado_em, ultimo_acesso
     """
     conn = get_connection()
     if not conn:
         return None
     try:
         cur = conn.cursor(cursor_factory=RealDictCursor)
-        # SELECT apenas colunas garantidas: id, email, senha
-        cur.execute("SELECT id, email, senha FROM usuarios WHERE email = %s AND ativo = TRUE", (email,))
+        # SELECT apenas colunas que EXISTEM no banco: id, email, senha, criado_em
+        # Removido: AND ativo = TRUE (coluna não existe)
+        cur.execute("SELECT id, email, senha, criado_em FROM usuarios WHERE email = %s", (email,))
         user = cur.fetchone()
         cur.close()
         return user
@@ -92,21 +94,10 @@ def log_access(usuario_id, tipo_evento, ip_address, sucesso, mensagem):
 
 def update_last_access(usuario_id):
     """
-    Atualiza timestamp do último acesso do usuário.
-    Inclui tratamento de exceção com rollback.
+    FUNÇÃO DESABILITADA: coluna ultimo_acesso NÃO existe no schema real.
+    Schema real da tabela usuarios: id, email, senha, criado_em
+    Retorna True sem executar UPDATE para evitar erro SQL.
     """
-    conn = get_connection()
-    if not conn:
-        return False
-    try:
-        cur = conn.cursor()
-        cur.execute("UPDATE usuarios SET ultimo_acesso = NOW() WHERE id = %s", (usuario_id,))
-        conn.commit()
-        cur.close()
-        return True
-    except psycopg2.Error as e:
-        print(f"Erro ao atualizar último acesso: {e}")
-        conn.rollback()
-        return False
-    finally:
-        conn.close()
+    # NÃO executa UPDATE pois coluna ultimo_acesso não existe
+    # Mantém função para compatibilidade com código existente
+    return True

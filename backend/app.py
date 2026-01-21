@@ -115,7 +115,8 @@ def login():
         ip = request.remote_addr
         create_session(usuario['id'], token, ip)
         log_access(usuario['id'], 'login', ip, True, 'Login bem-sucedido')
-        update_last_access(usuario['id'])
+        # update_last_access desabilitado: coluna ultimo_acesso não existe no banco
+        # update_last_access(usuario['id'])
         
         # Resposta JSON sem campo 'nome' (não existe no banco)
         return jsonify({
